@@ -1,0 +1,30 @@
+[package]
+name = "clipboard-platform"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+clipboard-core = { path = "../clipboard-core" }
+async-trait = "0.1"
+arboard = "3.3"
+
+[target.'cfg(windows)'.dependencies]
+clipboard-win = "4.5"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+wl-clipboard-rs = "0.7"
+x11-clipboard = "0.8"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+cocoa = "0.25"
+objc = "0.2"

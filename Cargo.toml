@@ -1,0 +1,61 @@
+[workspace]
+members = [
+    "apps/desktop/src-tauri",
+    "apps/cli",
+    "crates/clipboard-core",
+    "crates/clipboard-db",
+    "crates/clipboard-search",
+    "crates/clipboard-storage",
+    "crates/clipboard-encryption",
+    "crates/clipboard-platform",
+    "crates/clipboard-events",
+    "crates/clipboard-sync",
+    "crates/clipboard-api",
+    "crates/clipboard-cli",
+    "crates/clipboard-plugin",
+    "crates/clipboard-ai",
+    "crates/clipboard-ipc",
+    "crates/clipboard-daemon",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.75"
+authors = ["OpenPaste Contributors"]
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/openpaste/openpaste"
+homepage = "https://github.com/openpaste/openpaste"
+
+[workspace.dependencies]
+# Async runtime
+tokio = { version = "1.35", features = ["full"] }
+# Database
+sqlx = { version = "0.7", features = ["runtime-tokio", "sqlite", "chrono"] }
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+# Error handling
+thiserror = "1.0"
+anyhow = "1.0"
+# Logging
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# Cryptography
+aes-gcm = "0.10"
+argon2 = "0.5"
+# Compression
+zstd = "0.13"
+# WASM
+wasmtime = "15.0"
+# HTTP
+axum = "0.7"
+reqwest = { version = "0.11", features = ["json"] }
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+# UUID
+uuid = { version = "1.6", features = ["v4", "serde"] }
+# Time
+chrono = { version = "0.4", features = ["serde"] }
