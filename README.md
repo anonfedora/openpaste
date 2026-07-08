@@ -1,6 +1,6 @@
 # OpenPaste
 
-A modern, cross-platform clipboard manager with advanced features like encryption, search, and sync.
+**OpenPaste** is a modern, open-source, cross-platform clipboard manager built for developers, power users, and professionals who rely on their clipboard every day. Designed with performance, privacy, and productivity at its core, OpenPaste transforms the traditional clipboard into a searchable, organized, and secure workspace.
 
 ## Current Status
 
