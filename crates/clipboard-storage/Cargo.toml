@@ -17,3 +17,4 @@ tracing = { workspace = true }
 zstd = { workspace = true }
 clipboard-core = { path = "../clipboard-core" }
 chrono = { workspace = true }
+uuid = { workspace = true }

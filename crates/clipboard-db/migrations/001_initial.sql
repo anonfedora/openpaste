@@ -95,6 +95,5 @@ CREATE TABLE IF NOT EXISTS audit_log (
 
 -- Indexes
 CREATE INDEX IF NOT EXISTS idx_clipboard_items_created_at ON clipboard_items(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_clipboard_items_hash ON clipboard_items(hash);
 CREATE INDEX IF NOT EXISTS idx_clipboard_items_pinned ON clipboard_items(pinned);
 CREATE INDEX IF NOT EXISTS idx_clipboard_items_favorite ON clipboard_items(favorite);

@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { invoke } from '@tauri-apps/api'
 import { appWindow } from '@tauri-apps/api/window'
-import { 
-  Clipboard, 
-  Search, 
-  Pin, 
-  Settings, 
-  Menu, 
-  Link, 
-  FileText, 
-  Image, 
-  Terminal, 
-  Copy, 
-  Star, 
-  Trash2, 
+import {
+  Clipboard,
+  Search,
+  Pin,
+  Settings,
+  Menu,
+  Link,
+  FileText,
+  Image,
+  Terminal,
+  Copy,
+  Star,
+  Trash2,
   Check,
   Minimize,
   Maximize2,
@@ -38,6 +38,12 @@ function App() {
   const [selectedItem, setSelectedItem] = useState<ClipboardItem | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const itemsRef = useRef(items)
+
+  // Update ref whenever items changes
+  useEffect(() => {
+    itemsRef.current = items
+  }, [items])
 
   useEffect(() => {
     loadClipboardHistory(true)
@@ -60,7 +66,7 @@ function App() {
       const history = await invoke<ClipboardItem[]>('get_clipboard_history')
 
       // Only update if data actually changed (compare by ID and hash)
-      const currentIds = items.map(item => `${item.id}-${item.hash}`).join(',')
+      const currentIds = itemsRef.current.map(item => `${item.id}-${item.hash}`).join(',')
       const newIds = history.map(item => `${item.id}-${item.hash}`).join(',')
 
       if (currentIds !== newIds) {
@@ -95,7 +101,7 @@ function App() {
 
   const togglePin = async (item: ClipboardItem) => {
     try {
-      await invoke('toggle_pin_item', { id: Number(item.id) })
+      await invoke('toggle_pin_item', { id: String(item.id) })
       loadClipboardHistory(false)
     } catch (e) {
       console.error('Failed to toggle pin:', e)
@@ -104,7 +110,7 @@ function App() {
 
   const toggleFavorite = async (item: ClipboardItem) => {
     try {
-      await invoke('toggle_favorite_item', { id: Number(item.id) })
+      await invoke('toggle_favorite_item', { id: String(item.id) })
       loadClipboardHistory(false)
     } catch (e) {
       console.error('Failed to toggle favorite:', e)

@@ -16,6 +16,17 @@ struct ClipboardItem {
     favorite: bool,
 }
 
+/// Convert bytes to string, using base64 for binary content
+fn bytes_to_string(content_type: &str, bytes: &[u8]) -> String {
+    let type_lower = content_type.to_lowercase();
+    if type_lower.contains("text") || type_lower.contains("plain") || type_lower.contains("url") {
+        String::from_utf8_lossy(bytes).to_string()
+    } else {
+        use base64::{Engine as _, engine::general_purpose::STANDARD};
+        STANDARD.encode(bytes)
+    }
+}
+
 fn get_ipc_socket_path() -> PathBuf {
     let data_dir = dirs::data_local_dir()
         .unwrap_or_else(|| PathBuf::from("."))
@@ -42,8 +53,8 @@ async fn get_clipboard_history() -> Result<Vec<ClipboardItem>, String> {
                 .into_iter()
                 .map(|item| ClipboardItem {
                     id: item.id,
-                    content_type: item.content_type,
-                    content: String::from_utf8_lossy(&item.content).to_string(),
+                    content_type: item.content_type.clone(),
+                    content: bytes_to_string(&item.content_type, &item.content),
                     hash: item.hash,
                     created_at: item.created_at,
                     accessed_at: item.accessed_at,
@@ -70,8 +81,8 @@ async fn search_clipboard_items(query: String) -> Result<Vec<ClipboardItem>, Str
                 .into_iter()
                 .map(|item| ClipboardItem {
                     id: item.id,
-                    content_type: item.content_type,
-                    content: String::from_utf8_lossy(&item.content).to_string(),
+                    content_type: item.content_type.clone(),
+                    content: bytes_to_string(&item.content_type, &item.content),
                     hash: item.hash,
                     created_at: item.created_at,
                     accessed_at: item.accessed_at,
@@ -112,7 +123,7 @@ async fn get_current_clipboard() -> Result<String, String> {
 
     match client.send(IpcMessage::GetClipboard).await {
         Ok(IpcMessage::ClipboardContent { content }) => {
-            Ok(String::from_utf8_lossy(&content).to_string())
+            Ok(bytes_to_string("text/plain", &content))
         }
         Ok(IpcMessage::Error { message }) => Err(format!("Daemon error: {}", message)),
         Err(e) => Err(format!("IPC error: {}", e)),
@@ -121,11 +132,12 @@ async fn get_current_clipboard() -> Result<String, String> {
 }
 
 #[tauri::command]
-async fn delete_clipboard_item(id: i64) -> Result<(), String> {
+async fn delete_clipboard_item(id: String) -> Result<(), String> {
+    let id_i64 = id.parse::<i64>().map_err(|e| format!("Invalid ID: {}", e))?;
     let socket_path = get_ipc_socket_path();
     let client = IpcClient::new(socket_path.to_string_lossy().to_string());
 
-    match client.send(IpcMessage::DeleteItem { id }).await {
+    match client.send(IpcMessage::DeleteItem { id: id_i64 }).await {
         Ok(IpcMessage::Success) => Ok(()),
         Ok(IpcMessage::Error { message }) => Err(format!("Daemon error: {}", message)),
         Err(e) => Err(format!("IPC error: {}", e)),
@@ -134,11 +146,12 @@ async fn delete_clipboard_item(id: i64) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn toggle_pin_item(id: i64) -> Result<(), String> {
+async fn toggle_pin_item(id: String) -> Result<(), String> {
+    let id_i64 = id.parse::<i64>().map_err(|e| format!("Invalid ID: {}", e))?;
     let socket_path = get_ipc_socket_path();
     let client = IpcClient::new(socket_path.to_string_lossy().to_string());
 
-    match client.send(IpcMessage::TogglePin { id }).await {
+    match client.send(IpcMessage::TogglePin { id: id_i64 }).await {
         Ok(IpcMessage::Success) => Ok(()),
         Ok(IpcMessage::Error { message }) => Err(format!("Daemon error: {}", message)),
         Err(e) => Err(format!("IPC error: {}", e)),
@@ -147,11 +160,12 @@ async fn toggle_pin_item(id: i64) -> Result<(), String> {
 }
 
 #[tauri::command]
-async fn toggle_favorite_item(id: i64) -> Result<(), String> {
+async fn toggle_favorite_item(id: String) -> Result<(), String> {
+    let id_i64 = id.parse::<i64>().map_err(|e| format!("Invalid ID: {}", e))?;
     let socket_path = get_ipc_socket_path();
     let client = IpcClient::new(socket_path.to_string_lossy().to_string());
 
-    match client.send(IpcMessage::ToggleFavorite { id }).await {
+    match client.send(IpcMessage::ToggleFavorite { id: id_i64 }).await {
         Ok(IpcMessage::Success) => Ok(()),
         Ok(IpcMessage::Error { message }) => Err(format!("Daemon error: {}", message)),
         Err(e) => Err(format!("IPC error: {}", e)),

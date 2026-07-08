@@ -24,7 +24,7 @@
       "identifier": "com.openpaste.desktop"
     },
     "security": {
-      "csp": null
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
     },
     "updater": {
       "active": false

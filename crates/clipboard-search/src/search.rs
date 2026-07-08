@@ -35,9 +35,9 @@ impl SearchEngine {
         limit: usize,
     ) -> Result<Vec<String>, SearchError> {
         let suggestions = sqlx::query_scalar::<_, String>(
-            "SELECT DISTINCT substr(content, 1, 50) FROM clipboard_items_fts WHERE content MATCH ?* LIMIT ?"
+            "SELECT DISTINCT substr(content, 1, 50) FROM clipboard_items_fts WHERE content MATCH ? LIMIT ?"
         )
-        .bind(prefix)
+        .bind(format!("{}*", prefix.replace('*', "")))
         .bind(limit as i64)
         .fetch_all(&self.pool)
         .await
