@@ -1,0 +1,29 @@
+[package]
+name = "clipboard-daemon"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "openpaste-daemon"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+anyhow = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clipboard-core = { path = "../clipboard-core" }
+clipboard-db = { path = "../clipboard-db" }
+clipboard-storage = { path = "../clipboard-storage" }
+clipboard-encryption = { path = "../clipboard-encryption" }
+clipboard-platform = { path = "../clipboard-platform" }
+clipboard-events = { path = "../clipboard-events" }
+clipboard-ipc = { path = "../clipboard-ipc" }
+dirs = "5.0"

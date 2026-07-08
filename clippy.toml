@@ -1,0 +1,4 @@
+# Clippy configuration
+
+# Deny warnings
+warn-on-all-wildcard-imports = true
