@@ -13,8 +13,33 @@ env:
   RUST_BACKTRACE: 1
 
 jobs:
+  # ── Stage 1: create the draft release exactly once ───────────────────────
+  create-release:
+    name: Create draft release
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create.outputs.release_id }}
+    steps:
+      - name: Create draft release via GitHub API
+        id: create
+        run: |
+          RELEASE_ID=$(curl -s -X POST \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/${{ github.repository }}/releases" \
+            -d "$(jq -n \
+              --arg tag "${{ github.ref_name }}" \
+              --arg name "OpenPaste ${{ github.ref_name }}" \
+              --arg body "See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details." \
+              '{tag_name:$tag,name:$name,body:$body,draft:true,prerelease:false}')" \
+            | jq -r '.id')
+          echo "release_id=$RELEASE_ID" >> $GITHUB_OUTPUT
+          echo "Created release ID: $RELEASE_ID"
+
+  # ── Stage 2: build each platform and upload to the same release ──────────
   build:
     name: Build — ${{ matrix.label }}
+    needs: create-release
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -81,16 +106,11 @@ jobs:
       - name: Build daemon
         run: cargo build --bin openpaste-daemon --release --target ${{ matrix.target }}
 
-      - name: Build Tauri app
+      - name: Build Tauri app and upload to release
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: apps/desktop
-          tagName: ${{ github.ref_name }}
-          releaseName: 'OpenPaste ${{ github.ref_name }}'
-          releaseBody: |
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-          releaseDraft: true
-          prerelease: false
+          releaseId: ${{ needs.create-release.outputs.release_id }}
           args: ${{ matrix.tauri_args }}

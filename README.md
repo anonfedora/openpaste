@@ -27,7 +27,7 @@ Built with **Tauri + React + Rust + SQLite**.
 
 ## Installation
 
-Download the correct package for your system from the latest [GitHub Releases](https://github.com/YOUR_USERNAME/openpaste/releases).
+Download the correct package for your system from the latest [GitHub Releases](https://github.com/anonfedora/openpaste/releases).
 
 ### 🖥️ macOS
 
@@ -52,17 +52,27 @@ Download the correct package for your system from the latest [GitHub Releases](h
 
 ### 🐧 Linux
 
-1. **Download:** `OpenPaste_x.x.x_amd64.deb` (Debian/Ubuntu) or `OpenPaste_x.x.x_amd64.AppImage` (universal)
+1. **Download** the package matching your distro:
+   - **Debian/Ubuntu:** `open-paste_x.x.x_amd64.deb`
+   - **Fedora/RHEL/openSUSE:** `open-paste-x.x.x-1.x86_64.rpm`
+   - **Universal (any distro):** `open-paste_x.x.x_amd64.AppImage`
 
 2. **Install `.deb`:**
    ```bash
-   sudo dpkg -i OpenPaste_*.deb
+   sudo dpkg -i open-paste_*.deb
    ```
 
-3. **Run `.AppImage`:**
+3. **Install `.rpm`:**
    ```bash
-   chmod +x OpenPaste_*.AppImage
-   ./OpenPaste_*.AppImage
+   sudo rpm -i open-paste-*.rpm
+   # or with dnf:
+   sudo dnf install open-paste-*.rpm
+   ```
+
+4. **Run `.AppImage`:**
+   ```bash
+   chmod +x open-paste_*.AppImage
+   ./open-paste_*.AppImage
    ```
 
 ---
