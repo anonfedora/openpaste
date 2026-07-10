@@ -99,7 +99,12 @@ async fn main() -> Result<()> {
                     let database_clone = database.clone();
                     let encryption_clone = encryption.clone();
                     Box::pin(async move {
-                        match database_clone.list_items(100, 0).await {
+                        let limit = database_clone.get_setting("max_items").await
+                            .ok().flatten()
+                            .and_then(|v| v.parse::<usize>().ok())
+                            .unwrap_or(10_000)
+                            .min(10_000);
+                        match database_clone.list_items(limit, 0).await {
                             Ok(items) => {
                                 let encryption_guard = encryption_clone.read().await;
                                 let history_items: Vec<clipboard_ipc::ClipboardHistoryItem> = items.into_iter().map(|item| {
@@ -143,7 +148,8 @@ async fn main() -> Result<()> {
                     let database_clone = database.clone();
                     let encryption_clone = encryption.clone();
                     Box::pin(async move {
-                        match database_clone.search_items(&query, 100, 0).await {
+                        // Cap search results at 500 — more than enough for any query
+                        match database_clone.search_items(&query, 500, 0).await {
                             Ok(items) => {
                                 let encryption_guard = encryption_clone.read().await;
                                 let history_items: Vec<clipboard_ipc::ClipboardHistoryItem> = items.into_iter().map(|item| {
@@ -505,7 +511,12 @@ async fn main() -> Result<()> {
                     let database_clone = database.clone();
                     let encryption_clone = encryption.clone();
                     Box::pin(async move {
-                        match database_clone.list_items_by_tag(tag_id, 100, 0).await {
+                        let limit = database_clone.get_setting("max_items").await
+                            .ok().flatten()
+                            .and_then(|v| v.parse::<usize>().ok())
+                            .unwrap_or(10_000)
+                            .min(10_000);
+                        match database_clone.list_items_by_tag(tag_id, limit, 0).await {
                             Ok(items) => {
                                 let encryption_guard = encryption_clone.read().await;
                                 let history_items = items.into_iter().map(|item| {
