@@ -14,3 +14,9 @@ path = "src/main.rs"
 [dependencies]
 clap = { workspace = true }
 anyhow = { workspace = true }
+tokio = { workspace = true }
+dirs = "5.0"
+clipboard-ipc = { path = "../../crates/clipboard-ipc" }
+colored = "2.1"
+chrono = { workspace = true }
+base64 = "0.22"

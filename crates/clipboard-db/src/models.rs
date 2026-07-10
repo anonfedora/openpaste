@@ -4,7 +4,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-/// Clipboard item database model
+/// Tag model
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+pub struct Tag {
+    pub id: i64,
+    pub name: String,
+    pub color: Option<String>,
+}
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct ClipboardItem {
     pub id: i64,
@@ -15,4 +21,6 @@ pub struct ClipboardItem {
     pub accessed_at: Option<DateTime<Utc>>,
     pub pinned: bool,
     pub favorite: bool,
+    pub nonce: Option<Vec<u8>>,
+    pub encrypted: bool,
 }

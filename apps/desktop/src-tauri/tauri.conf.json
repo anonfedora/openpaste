@@ -16,10 +16,24 @@
       "shell": {
         "all": false,
         "open": true
+      },
+      "globalShortcut": {
+        "all": true
+      },
+      "window": {
+        "all": false,
+        "show": true,
+        "hide": true,
+        "setFocus": true,
+        "center": true
+      },
+      "dialog": {
+        "all": false,
+        "open": true
       }
     },
     "bundle": {
-      "active": false,
+      "active": true,
       "targets": "all",
       "identifier": "com.openpaste.desktop",
       "icon": [
@@ -33,6 +47,11 @@
     "security": {
       "csp": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:;"
     },
+    "systemTray": {
+      "iconPath": "icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false
+    },
     "updater": {
       "active": false
     },
@@ -45,7 +64,8 @@
         "width": 1000,
         "hiddenTitle": false,
         "titleBarStyle": "Visible",
-        "decorations": false
+        "decorations": false,
+        "skipTaskbar": true
       }
     ]
   }

@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS clipboard_items (
     created_at TEXT NOT NULL,
     accessed_at TEXT,
     pinned INTEGER NOT NULL DEFAULT 0,
-    favorite INTEGER NOT NULL DEFAULT 0
+    favorite INTEGER NOT NULL DEFAULT 0,
+    nonce BLOB,
+    encrypted INTEGER NOT NULL DEFAULT 0
 );
 
 -- FTS5 virtual table for full-text search
@@ -63,6 +65,7 @@ CREATE TABLE IF NOT EXISTS clipboard_item_tags (
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL,
+    value_type TEXT NOT NULL DEFAULT 'string',
     updated_at TEXT NOT NULL
 );
 

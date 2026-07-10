@@ -17,6 +17,7 @@ tracing = { workspace = true }
 clipboard-core = { path = "../clipboard-core" }
 async-trait = "0.1"
 arboard = "3.3"
+image = { version = "0.25", default-features = false, features = ["png"] }
 
 [target.'cfg(windows)'.dependencies]
 clipboard-win = "4.5"

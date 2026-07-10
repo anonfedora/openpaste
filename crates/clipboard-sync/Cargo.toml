@@ -14,3 +14,8 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 anyhow = { workspace = true }
 tracing = { workspace = true }
+reqwest = { version = "0.11", features = ["json"] }
+chrono = { workspace = true }
+clipboard-db = { path = "../clipboard-db" }
+urlencoding = "2.1"
+base64 = "0.22"

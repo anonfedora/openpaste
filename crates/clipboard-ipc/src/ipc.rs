@@ -21,20 +21,103 @@ pub enum IpcMessage {
     TogglePin { id: i64 },
     /// Toggle favorite status
     ToggleFavorite { id: i64 },
+    /// Get settings
+    GetSettings,
+    /// Save settings
+    SaveSettings { settings: AppSettings },
+    /// Set master password
+    SetMasterPassword { password: String },
+    /// Unlock vault with password
+    UnlockVault { password: String },
+    /// Lock vault
+    LockVault,
+    /// Check if vault is locked
+    CheckVaultStatus,
+    /// Check if a master password has been configured
+    HasMasterPassword,
+    // ── Tag operations ────────────────────────────────────────────────────────
+    /// List all tags
+    ListTags,
+    /// Create or upsert a tag
+    CreateTag { name: String, color: Option<String> },
+    /// Delete a tag by id
+    DeleteTag { id: i64 },
+    /// Get tags for a clipboard item
+    GetItemTags { item_id: i64 },
+    /// Add a tag to a clipboard item (creates tag if needed)
+    AddTagToItem { item_id: i64, tag_name: String, color: Option<String> },
+    /// Remove a tag from a clipboard item
+    RemoveTagFromItem { item_id: i64, tag_id: i64 },
+    /// List items with a given tag
+    ListItemsByTag { tag_id: i64 },
+    // ── Sync operations ───────────────────────────────────────────────────────
+    /// Get sync configuration (server_url, device_id, enabled)
+    GetSyncConfig,
+    /// Save sync configuration
+    SetSyncConfig { server_url: String, api_token: Option<String>, enabled: bool },
+    /// Trigger an immediate sync cycle
+    SyncNow,
+    // ── Plugin operations ─────────────────────────────────────────────────────
+    /// List loaded plugins
+    ListPlugins,
+    /// Load a plugin from an absolute path
+    LoadPlugin { path: String },
+    /// Unload a plugin by name
+    UnloadPlugin { name: String },
     /// Clipboard content response
     ClipboardContent { content: Vec<u8> },
     /// Clipboard history response
     ClipboardHistory { items: Vec<ClipboardHistoryItem> },
+    /// Settings response
+    Settings { settings: AppSettings },
+    /// Vault status response
+    VaultStatus { is_locked: bool },
+    /// Whether a master password has been configured
+    PasswordConfigured { has_password: bool },
+    /// Tags list response
+    TagsList { tags: Vec<TagItem> },
+    /// Tags for a single item
+    ItemTags { tags: Vec<TagItem> },
+    /// Sync configuration response
+    SyncConfig { server_url: String, api_token: Option<String>, enabled: bool, last_sync_at: Option<String> },
+    /// Plugin list response
+    PluginList { plugins: Vec<PluginInfoItem> },
     /// Success response
     Success,
     /// Error response
     Error { message: String },
 }
 
+/// Application settings
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AppSettings {
+    pub encryption_enabled: bool,
+    pub auto_lock_minutes: i32,
+    pub max_items: i32,
+    pub retention_days: i32,
+    pub refresh_interval: i32,
+    pub show_notifications: bool,
+}
+
+/// Tag item for IPC
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TagItem {
+    pub id: i64,
+    pub name: String,
+    pub color: Option<String>,
+}
+
+/// Plugin info for IPC
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PluginInfoItem {
+    pub name: String,
+    pub path: String,
+    pub enabled: bool,
+}
+
 /// Clipboard history item for IPC
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ClipboardHistoryItem {
-    pub id: String,
+pub struct ClipboardHistoryItem {    pub id: String,
     pub content_type: String,
     pub content: Vec<u8>,
     pub hash: String,
@@ -42,6 +125,8 @@ pub struct ClipboardHistoryItem {
     pub accessed_at: Option<String>,
     pub pinned: bool,
     pub favorite: bool,
+    pub nonce: Option<Vec<u8>>,
+    pub encrypted: bool,
 }
 
 /// IPC server
