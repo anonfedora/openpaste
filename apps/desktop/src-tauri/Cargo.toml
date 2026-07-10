@@ -11,7 +11,7 @@ repository.workspace = true
 tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-tauri = { version = "1.5", features = ["shell-open"] }
+tauri = { version = "1.5", features = [ "window-hide", "global-shortcut-all", "window-show", "window-center", "window-set-focus", "shell-open", "system-tray", "global-shortcut", "dialog-open"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 clipboard-core = { path = "../../../crates/clipboard-core" }
@@ -19,6 +19,8 @@ clipboard-ipc = { path = "../../../crates/clipboard-ipc" }
 chrono = { workspace = true }
 dirs = "5.0"
 base64 = "0.22"
+arboard = "3.3"
+notify-rust = { version = "4.11", features = ["d"] }
 
 [features]
 default = ["custom-protocol"]

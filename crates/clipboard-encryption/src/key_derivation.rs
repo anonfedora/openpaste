@@ -79,3 +79,62 @@ impl KeyDerivation {
             .map_err(|_| EncryptionError::InvalidPassword)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_derive_key_is_deterministic() {
+        let kd = KeyDerivation::new();
+        let salt = KeyDerivation::generate_salt();
+        let key1 = kd.derive_key("password123", &salt).unwrap();
+        let key2 = kd.derive_key("password123", &salt).unwrap();
+        assert_eq!(key1, key2);
+    }
+
+    #[test]
+    fn test_derive_key_differs_for_different_passwords() {
+        let kd = KeyDerivation::new();
+        let salt = KeyDerivation::generate_salt();
+        let key1 = kd.derive_key("password123", &salt).unwrap();
+        let key2 = kd.derive_key("different!", &salt).unwrap();
+        assert_ne!(key1, key2);
+    }
+
+    #[test]
+    fn test_derive_key_differs_for_different_salts() {
+        let kd = KeyDerivation::new();
+        let salt1 = KeyDerivation::generate_salt();
+        let salt2 = KeyDerivation::generate_salt();
+        let key1 = kd.derive_key("password", &salt1).unwrap();
+        let key2 = kd.derive_key("password", &salt2).unwrap();
+        assert_ne!(key1, key2);
+    }
+
+    #[test]
+    fn test_hash_and_verify_password() {
+        let kd = KeyDerivation::new();
+        let hash = kd.hash_password("my_secure_password").unwrap();
+        assert!(!hash.is_empty());
+        // Correct password verifies
+        assert!(kd.verify("my_secure_password", &hash).unwrap());
+    }
+
+    #[test]
+    fn test_wrong_password_fails_verification() {
+        let kd = KeyDerivation::new();
+        let hash = kd.hash_password("correct_password").unwrap();
+        let result = kd.verify("wrong_password", &hash);
+        // Should return Err(InvalidPassword)
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_derived_key_is_32_bytes() {
+        let kd = KeyDerivation::new();
+        let salt = KeyDerivation::generate_salt();
+        let key = kd.derive_key("anything", &salt).unwrap();
+        assert_eq!(key.len(), 32);
+    }
+}

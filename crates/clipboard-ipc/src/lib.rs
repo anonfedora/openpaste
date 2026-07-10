@@ -4,4 +4,4 @@ pub mod error;
 pub mod ipc;
 
 pub use error::IpcError;
-pub use ipc::{ClipboardHistoryItem, IpcClient, IpcMessage, IpcServer};
+pub use ipc::{AppSettings, ClipboardHistoryItem, IpcClient, IpcMessage, IpcServer, PluginInfoItem, TagItem};

@@ -17,3 +17,4 @@ tracing = { workspace = true }
 uuid = { workspace = true }
 chrono = { workspace = true }
 md5 = "0.7"
+arboard = "3.3"
