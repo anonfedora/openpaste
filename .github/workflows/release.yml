@@ -28,7 +28,7 @@ jobs:
             tauri_args: --target aarch64-apple-darwin
 
           # macOS Intel
-          - os: macos-13
+          - os: macos-latest
             label: macOS-x64
             target: x86_64-apple-darwin
             tauri_args: --target x86_64-apple-darwin
@@ -91,21 +91,32 @@ jobs:
         run: cargo build --bin openpaste-daemon --release --target ${{ matrix.target }}
 
       # ── Tauri build ─────────────────────────────────────────────────────
-      - name: Build Tauri app
+      - name: Build Tauri app (unsigned)
+        if: "!startsWith(matrix.os, 'macos') || secrets.APPLE_CERTIFICATE == ''"
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Code-signing (optional — set these secrets to sign your builds)
-          # macOS
+        with:
+          projectPath: apps/desktop
+          tagName: ${{ github.ref_name }}
+          releaseName: 'OpenPaste ${{ github.ref_name }}'
+          releaseBody: |
+            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.tauri_args }}
+
+      - name: Build Tauri app (signed — macOS)
+        if: "startsWith(matrix.os, 'macos') && secrets.APPLE_CERTIFICATE != ''"
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          # Windows
-          TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
-          TAURI_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
         with:
           projectPath: apps/desktop
           tagName: ${{ github.ref_name }}

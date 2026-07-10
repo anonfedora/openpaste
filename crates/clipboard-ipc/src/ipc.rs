@@ -2,7 +2,14 @@
 
 use crate::IpcError;
 use serde::{Deserialize, Serialize};
+
+// Unix-only imports
+#[cfg(unix)]
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
+
+// Windows needs AsyncReadExt + AsyncWriteExt
+#[cfg(windows)]
+use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
 /// IPC message types
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -177,31 +184,29 @@ impl IpcServer {
 
         #[cfg(windows)]
         {
-            use tokio::net::windows::named_pipe::{NamedPipeServer, ServerOptions};
-
-            let server = ServerOptions::new()
-                .create(&self.path)
-                .map_err(|e| IpcError::ConnectionFailed(e.to_string()))?;
+            use tokio::net::windows::named_pipe::ServerOptions;
 
             tracing::info!("IPC server listening on {}", self.path);
 
             loop {
-                let mut server = server
+                // Create a fresh server instance for each connection
+                let mut server = ServerOptions::new()
+                    .first_pipe_instance(false)
+                    .create(&self.path)
+                    .map_err(|e| IpcError::ConnectionFailed(e.to_string()))?;
+
+                // Wait for a client to connect
+                server
                     .connect()
                     .await
                     .map_err(|e| IpcError::ConnectionFailed(e.to_string()))?;
 
                 let handler = handler.clone();
                 tokio::spawn(async move {
-                    if let Err(e) = Self::handle_connection_windows(&mut server, handler).await {
+                    if let Err(e) = Self::handle_connection_windows(server, handler).await {
                         tracing::error!("Connection error: {}", e);
                     }
                 });
-
-                // Recreate server for next connection
-                let server = ServerOptions::new()
-                    .create(&self.path)
-                    .map_err(|e| IpcError::ConnectionFailed(e.to_string()))?;
             }
         }
     }
@@ -246,14 +251,14 @@ impl IpcServer {
 
     #[cfg(windows)]
     async fn handle_connection_windows<F, Fut>(
-        server: &mut tokio::net::windows::named_pipe::NamedPipeServer,
+        mut server: tokio::net::windows::named_pipe::NamedPipeServer,
         handler: F,
     ) -> Result<(), IpcError>
     where
         F: Fn(IpcMessage) -> Fut + Clone,
         Fut: std::future::Future<Output = IpcMessage>,
     {
-        let mut buf = vec![0u8; 4096];
+        let mut buf = vec![0u8; 65536];
         let n = server
             .read(&mut buf)
             .await
@@ -340,7 +345,7 @@ impl IpcClient {
                 .await
                 .map_err(|e| IpcError::SendFailed(e.to_string()))?;
 
-            let mut buf = vec![0u8; 4096];
+            let mut buf = vec![0u8; 65536];
             let n = client
                 .read(&mut buf)
                 .await
