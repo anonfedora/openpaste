@@ -49,21 +49,25 @@ jobs:
             label: macOS-arm64
             target: aarch64-apple-darwin
             tauri_args: --target aarch64-apple-darwin
+            daemon_ext: ''
 
           - os: macos-latest
             label: macOS-x64
             target: x86_64-apple-darwin
             tauri_args: --target x86_64-apple-darwin
+            daemon_ext: ''
 
           - os: windows-latest
             label: Windows-x64
             target: x86_64-pc-windows-msvc
             tauri_args: ''
+            daemon_ext: '.exe'
 
           - os: ubuntu-22.04
             label: Linux-x64
             target: x86_64-unknown-linux-gnu
             tauri_args: ''
+            daemon_ext: ''
 
     steps:
       - name: Checkout
@@ -103,8 +107,25 @@ jobs:
         working-directory: apps/desktop
         run: npm ci
 
+      # Build the daemon first — it must exist before tauri-action bundles it
       - name: Build daemon
         run: cargo build --bin openpaste-daemon --release --target ${{ matrix.target }}
+
+      # Copy daemon into src-tauri/binaries/ with the triple-suffixed name
+      # that Tauri's externalBin expects: openpaste-daemon-<triple>[.exe]
+      - name: Stage daemon binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p apps/desktop/src-tauri/binaries
+          cp target/${{ matrix.target }}/release/openpaste-daemon \
+             apps/desktop/src-tauri/binaries/openpaste-daemon-${{ matrix.target }}
+
+      - name: Stage daemon binary (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          New-Item -ItemType Directory -Force -Path apps/desktop/src-tauri/binaries
+          Copy-Item "target/${{ matrix.target }}/release/openpaste-daemon.exe" `
+            "apps/desktop/src-tauri/binaries/openpaste-daemon-${{ matrix.target }}.exe"
 
       - name: Build Tauri app and upload to release
         uses: tauri-apps/tauri-action@v0

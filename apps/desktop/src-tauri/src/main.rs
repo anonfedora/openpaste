@@ -629,7 +629,8 @@ fn main() {
             // ── Daemon sidecar ───────────────────────────────────────────────
             // Probe the IPC socket. If the daemon is already running (e.g. the
             // developer started it manually) we skip spawning.  Otherwise we
-            // locate and launch the daemon binary.
+            // launch it — in a release build it's bundled via externalBin,
+            // in dev we fall back to the cargo target directory.
             let daemon_child: Arc<Mutex<Option<std::process::Child>>> =
                 Arc::new(Mutex::new(None));
 
@@ -642,7 +643,6 @@ fn main() {
                 }
                 #[cfg(windows)]
                 {
-                    // Try opening the named pipe in non-blocking mode to probe
                     std::fs::OpenOptions::new()
                         .read(true)
                         .write(true)
@@ -654,37 +654,37 @@ fn main() {
             };
 
             if !daemon_already_running {
-                // Find the daemon binary next to the current exe, or fall back
-                // to the workspace target directory for dev builds.
-                // On Windows the binary has a .exe extension.
                 #[cfg(windows)]
                 let daemon_bin_name = "openpaste-daemon.exe";
                 #[cfg(not(windows))]
                 let daemon_bin_name = "openpaste-daemon";
 
-                let daemon_path = std::env::current_exe()
+                // 1. Try the bundled sidecar path (release build inside .app / installer)
+                let bundled = std::env::current_exe()
                     .ok()
                     .and_then(|p| p.parent().map(|d| d.join(daemon_bin_name)))
-                    .filter(|p| p.exists())
-                    .or_else(|| {
-                        // dev: workspace root / target / debug / openpaste-daemon[.exe]
-                        std::env::current_exe().ok().and_then(|p| {
-                            let mut dir = p.parent()?.to_path_buf();
-                            for _ in 0..8 {
-                                let candidate = dir.join("target").join("debug").join(daemon_bin_name);
+                    .filter(|p| p.exists());
+
+                // 2. Fall back to cargo target dirs for dev
+                let dev_path = if bundled.is_none() {
+                    std::env::current_exe().ok().and_then(|p| {
+                        let mut dir = p.parent()?.to_path_buf();
+                        for _ in 0..8 {
+                            for profile in &["debug", "release"] {
+                                let candidate = dir.join("target").join(profile).join(daemon_bin_name);
                                 if candidate.exists() {
                                     return Some(candidate);
                                 }
-                                // also check release
-                                let candidate = dir.join("target").join("release").join(daemon_bin_name);
-                                if candidate.exists() {
-                                    return Some(candidate);
-                                }
-                                dir = dir.parent()?.to_path_buf();
                             }
-                            None
-                        })
-                    });
+                            dir = dir.parent()?.to_path_buf();
+                        }
+                        None
+                    })
+                } else {
+                    None
+                };
+
+                let daemon_path = bundled.or(dev_path);
 
                 if let Some(bin) = daemon_path {
                     eprintln!("[openpaste] spawning daemon: {:?}", bin);
@@ -692,7 +692,7 @@ fn main() {
                         Ok(child) => {
                             *daemon_child.lock().unwrap() = Some(child);
                             // Give daemon time to bind the socket
-                            std::thread::sleep(std::time::Duration::from_millis(400));
+                            std::thread::sleep(std::time::Duration::from_millis(500));
                         }
                         Err(e) => eprintln!("[openpaste] failed to spawn daemon: {}", e),
                     }
