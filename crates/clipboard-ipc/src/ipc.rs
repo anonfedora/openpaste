@@ -188,12 +188,14 @@ impl IpcServer {
 
             tracing::info!("IPC server listening on {}", self.path);
 
+            let mut first = true;
             loop {
-                // Create a fresh server instance for each connection
+                // The first instance must claim ownership with first_pipe_instance(true)
                 let mut server = ServerOptions::new()
-                    .first_pipe_instance(false)
+                    .first_pipe_instance(first)
                     .create(&self.path)
                     .map_err(|e| IpcError::ConnectionFailed(e.to_string()))?;
+                first = false;
 
                 // Wait for a client to connect
                 server

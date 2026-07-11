@@ -33,7 +33,13 @@ async fn main() -> Result<()> {
 
     let db_path = data_dir.join("clipboard.db");
     let storage_path = data_dir.join("storage");
-    let ipc_socket_path = data_dir.join("openpaste.sock");
+    let ipc_socket_path = {
+        #[cfg(unix)]
+        { data_dir.join("openpaste.sock") }
+        // Windows named pipes must use the \\.\pipe\ prefix
+        #[cfg(windows)]
+        { std::path::PathBuf::from(r"\\.\pipe\openpaste") }
+    };
 
     std::fs::create_dir_all(&storage_path)?;
 

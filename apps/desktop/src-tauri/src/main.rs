@@ -51,8 +51,9 @@ fn get_ipc_socket_path() -> PathBuf {
     #[cfg(unix)]
     let socket_path = data_dir.join("openpaste.sock");
 
+    // Windows named pipes must use the \\.\pipe\ prefix
     #[cfg(windows)]
-    let socket_path = data_dir.join("openpaste.pipe");
+    let socket_path = PathBuf::from(r"\\.\pipe\openpaste");
 
     socket_path
 }
@@ -639,24 +640,43 @@ fn main() {
                     use std::os::unix::net::UnixStream;
                     UnixStream::connect(&socket_path).is_ok()
                 }
-                #[cfg(not(unix))]
+                #[cfg(windows)]
+                {
+                    // Try opening the named pipe in non-blocking mode to probe
+                    std::fs::OpenOptions::new()
+                        .read(true)
+                        .write(true)
+                        .open(r"\\.\pipe\openpaste")
+                        .is_ok()
+                }
+                #[cfg(not(any(unix, windows)))]
                 { false }
             };
 
             if !daemon_already_running {
                 // Find the daemon binary next to the current exe, or fall back
                 // to the workspace target directory for dev builds.
+                // On Windows the binary has a .exe extension.
+                #[cfg(windows)]
+                let daemon_bin_name = "openpaste-daemon.exe";
+                #[cfg(not(windows))]
+                let daemon_bin_name = "openpaste-daemon";
+
                 let daemon_path = std::env::current_exe()
                     .ok()
-                    .and_then(|p| p.parent().map(|d| d.join("openpaste-daemon")))
+                    .and_then(|p| p.parent().map(|d| d.join(daemon_bin_name)))
                     .filter(|p| p.exists())
                     .or_else(|| {
-                        // dev: workspace root / target / debug / openpaste-daemon
+                        // dev: workspace root / target / debug / openpaste-daemon[.exe]
                         std::env::current_exe().ok().and_then(|p| {
-                            // walk up to find a directory containing "target"
                             let mut dir = p.parent()?.to_path_buf();
                             for _ in 0..8 {
-                                let candidate = dir.join("target").join("debug").join("openpaste-daemon");
+                                let candidate = dir.join("target").join("debug").join(daemon_bin_name);
+                                if candidate.exists() {
+                                    return Some(candidate);
+                                }
+                                // also check release
+                                let candidate = dir.join("target").join("release").join(daemon_bin_name);
                                 if candidate.exists() {
                                     return Some(candidate);
                                 }

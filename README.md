@@ -37,12 +37,11 @@ Download the correct package for your system from the latest [GitHub Releases](h
 
 2. **Install:** Double-click the `.dmg` and drag **OpenPaste** to your Applications folder.
 
-3. **First launch — bypass Gatekeeper** (unsigned build):
-   - Right-click `OpenPaste.app` → **Open** → **Open** in the warning dialog.
-   - Or run in Terminal:
-     ```bash
-     xattr -cr /Applications/OpenPaste.app
-     ```
+3. **First launch** — macOS will show *"OpenPaste is damaged and can't be opened"* because the app is not yet notarized. This is expected. Run this command in Terminal to clear the quarantine flag:
+   ```bash
+   xattr -cr /Applications/OpenPaste.app
+   ```
+   Then double-click the app normally. You only need to do this once.
 
 ### 🪟 Windows
 

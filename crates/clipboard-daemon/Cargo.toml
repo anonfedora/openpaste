@@ -27,7 +27,7 @@ clipboard-platform = { path = "../clipboard-platform" }
 clipboard-events = { path = "../clipboard-events" }
 clipboard-ipc = { path = "../clipboard-ipc" }
 dirs = "5.0"
-notify-rust = { version = "4.11", features = ["d"] }
+notify-rust = { version = "4.11" }
 chrono = { workspace = true }
 uuid = { workspace = true }
 clipboard-sync = { path = "../clipboard-sync" }

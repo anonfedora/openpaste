@@ -65,7 +65,7 @@
         "hiddenTitle": false,
         "titleBarStyle": "Visible",
         "decorations": false,
-        "skipTaskbar": true
+        "skipTaskbar": false
       }
     ]
   }

@@ -20,7 +20,7 @@ chrono = { workspace = true }
 dirs = "5.0"
 base64 = "0.22"
 arboard = "3.3"
-notify-rust = { version = "4.11", features = ["d"] }
+notify-rust = { version = "4.11" }
 
 [features]
 default = ["custom-protocol"]
